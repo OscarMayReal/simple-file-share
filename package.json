@@ -1,0 +1,1 @@
+{"name":"simple-file-share","version":"1.0.0","description":"This is a project created with the Spark Framework","main":"index.js","scripts":{"start":"node index.js"},"author":"","license":"ISC","dependencies":{"express":"^4.21.2","socket.io":"^4.8.1","socketio":"^1.0.0"},"spark":{"projtype":"UIDraw"}}
