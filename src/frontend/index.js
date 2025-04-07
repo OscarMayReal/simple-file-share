@@ -1,15 +1,27 @@
-var mainview = new UIDrawView(() => {
-    UDNavView(() => {
-        UDInnerPadding(() => {
-            UDTextNode("This is a simple project created with create-spark-app")
-            UDTextNode("You can find out more information about Spark and UiDraw at the link below")
-            UDButton("Github", "github")
-                .color("black")
-                .onclick(() => {
-                    window.location.assign("https://www.github.com/oscarmayreal/UIDraw")
+var views = {
+    mainView: new UIDrawView(() => {
+        UDTabView([
+            {
+                name: "Send",
+                icon: "upload",
+                view: () => {UDTextNode("Send")}
+            },
+            {
+                name: "Receive",
+                icon: "download",
+                view: () => {views.recieveView.render()}
+            }
+        ])
+    }),
+    recieveView: new UIDrawView(() => {
+        UDNavView(() => {
+            UDInnerPadding(() => {
+                UDTextNode("Enter the recieving code given to you by the sender")
             })
         })
+            .title("Receive")
     })
-    .title("Welcome to Spark Framework")
-})
-mainview.render()
+}
+
+
+views.mainView.render()
