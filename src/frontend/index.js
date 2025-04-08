@@ -10,6 +10,10 @@ var views = {
                     .onclick(() => {
                         views.RecieveView.navigateto()
                     })
+                UDNavItem("test", "file")
+                    .onclick(() => {
+                        views.mainView.navigateto()
+                    })
             }, () => {
                 views.SendView.render()
             })
@@ -42,6 +46,9 @@ var views = {
             UDInnerPadding(() => {
                 UDTextNode("To send files, first sign in")
                 UDButton("Sign In", "log-in")
+                UDCustomHTML(`
+                    <div style="color: red; font-family: sans-serif">Hello World</div>    
+                `)
             })
         })
             .title("Send")

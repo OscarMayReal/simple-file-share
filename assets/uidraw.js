@@ -1,6 +1,8 @@
 rendercontext = document.getElementById("mainview")
 navigatepos = document.getElementById("mainview")
 
+var latestevent = ""
+
 var hash = window.location.hash;
 if (window.location.hash == "") {
     window.location.hash = "#nav"
@@ -33,6 +35,7 @@ class UIDrawView {
 
     navigateto() {
         // navigatepos.style.left = 0
+        navigatepos = $(latestevent.srcElement).closest(".navigateable-element").find(".navigatepos")[0]
         navigatepos.innerHTML = ""
         this.oldrc = rendercontext
         rendercontext = navigatepos
@@ -55,15 +58,140 @@ class UIDrawView {
 //     }
 // }
 
+function deepBindFunctions(obj, context) {
+    const result = Array.isArray(obj) ? [] : {};
+
+    for (const key in obj) {
+        if (!obj.hasOwnProperty(key)) continue;
+
+        const value = obj[key];
+
+        if (typeof value === "function") {
+            result[key] = value.bind(context);
+        } else if (typeof value === "object" && value !== null) {
+            result[key] = deepBindFunctions(value, context);
+        } else {
+            result[key] = value;
+        }
+    }
+
+    return result;
+}
+
+
+var styleoperations = {
+    padding: {
+        all: function(val) {
+            if (typeof val === "number") {
+                this.element.style.padding = val + "px"
+                return this
+            } else if (typeof val === "string") {
+                this.element.style.padding = val
+                return this
+            } else if (val == undefined) {
+                return this.element.style.padding
+            }
+        },
+        left: function(val) {
+            if (typeof val === "number") {
+                this.element.style.paddingLeft = val + "px"
+                return this
+            } else if (typeof val === "string") {
+                this.element.style.paddingLeft = val
+                return this
+            } else if (val == undefined) {
+                return this.element.style.paddingLeft
+            }
+        },
+        right: function(val) {
+            if (typeof val === "number") {
+                this.element.style.paddingRight = val + "px"
+                return this
+            } else if (typeof val === "string") {
+                this.element.style.paddingRight = val
+                return this
+            } else if (val == undefined) {
+                return this.element.style.paddingRight
+            }
+        },
+        top: function(val) {
+            if (typeof val === "number") {
+                this.element.style.paddingTop = val + "px"
+                return this
+            } else if (typeof val === "string") {
+                this.element.style.paddingTop = val
+                return this
+            } else if (val == undefined) {
+                return this.element.style.paddingTop
+            }
+        },
+        bottom: function(val) {
+            if (typeof val === "number") {
+                this.element.style.paddingBottom = val + "px"
+                return this
+            } else if (typeof val === "string") {
+                this.element.style.paddingBottom = val
+                return this
+            } else if (val == undefined) {
+                return this.element.style.paddingBottom
+            }
+        },
+    },
+    height: function(val) {
+        if (typeof val === "number") {
+            this.element.style.height = val + "px"
+            return this
+        } else if (typeof val === "string") {
+            this.element.style.height = val
+            return this
+        } else if (val == undefined) {
+            return this.element.style.height
+        }
+    },
+    width: function(val) {
+        if (typeof val === "number") {
+            this.element.style.width = val + "px"
+            return this
+        } else if (typeof val === "string") {
+            this.element.style.width = val
+            return this
+        } else if (val == undefined) {
+            return this.element.style.width
+        }
+    },
+}
+
+var universaloperations = {
+    elementclick: function(fn) {
+        console.log("onclick is now set")
+        this.element.addEventListener("click", (event) => {latestevent = event})
+        this.element.addEventListener("click", fn)
+        return this
+    }
+}
+
 function UDVerStack(el) {
     if(this instanceof UDVerStack) {
         this.el = el
         this.oldrc = rendercontext
-        this.selfcont = document.createElement("vstack")
-        rendercontext = this.selfcont
-        this.oldrc.append(this.selfcont)
+        this.element = document.createElement("vstack")
+        rendercontext = this.element
+        this.oldrc.append(this.element)
         this.el()
         rendercontext = this.oldrc
+        this.gap = function(gap) {
+            if (typeof gap === "number") {
+                this.element.style.gap = gap + "px"
+                return this
+            } else if (typeof gap === "string") {
+                this.element.style.gap = gap
+                return this
+            } else if (gap == undefined) {
+                return this.element.style.gap
+            }
+        }
+        this.style = deepBindFunctions(styleoperations, this)
+        this.universal = deepBindFunctions(universaloperations, this)
     } else {
         return new UDVerStack(el);
     }
@@ -73,21 +201,25 @@ function UDAnchorPoint(el) {
     if(this instanceof UDAnchorPoint) {
         this.el = el
         this.oldrc = rendercontext
-        this.selfcont = document.createElement("vstack")
-        rendercontext = this.selfcont
-        this.oldrc.append(this.selfcont)
+        this.element = document.createElement("vstack")
+        rendercontext = this.element
+        this.oldrc.append(this.element)
         this.udcode = el
         this.render = function() {
             this.oldrc = rendercontext
-            rendercontext = this.selfcont
+            rendercontext = this.element
             rendercontext.innerHTML = ""
             this.udcode()
             rendercontext = this.oldrc
+            return this
         }
         this.bindstate = function(statevar) {
             statevar.bindelement(this)
+            return this
         }
         rendercontext = this.oldrc
+        this.style = deepBindFunctions(styleoperations, this)
+        this.universal = deepBindFunctions(universaloperations, this)
     } else {
         return new UDAnchorPoint(el);
     }
@@ -97,11 +229,13 @@ function UDInnerPadding(el) {
     if(this instanceof UDInnerPadding) {
         this.el = el
         this.oldrc = rendercontext
-        this.selfcont = document.createElement("innerpaddingnode")
-        rendercontext = this.selfcont
-        this.oldrc.append(this.selfcont)
+        this.element = document.createElement("innerpaddingnode")
+        rendercontext = this.element
+        this.oldrc.append(this.element)
         this.el()
         rendercontext = this.oldrc
+        this.style = deepBindFunctions(styleoperations, this)
+        this.universal = deepBindFunctions(universaloperations, this)
     } else {
         return new UDInnerPadding(el);
     }
@@ -114,23 +248,26 @@ function UDPopOver(el, binding) {
         this.binding = binding
         binding.bindelement(this)
         this.oldrc = rendercontext
-        this.selfcont = document.createElement("popover")
+        this.element = document.createElement("popover")
         this.selfinner = document.createElement("popovercontent")
-        rendercontext = this.selfcont
+        rendercontext = this.element
         rendercontext.append(this.selfinner)
         rendercontext = this.selfinner
-        this.oldrc.append(this.selfcont)
+        this.oldrc.append(this.element)
         this.el()
         rendercontext = this.oldrc
-        $(this.selfcont).hide()
+        $(this.element).hide()
         this.render = function() {
             // console.log(this.binding)
             if (this.binding.content == true) {
-                $(this.selfcont).show()
+                $(this.element).show()
             } else {
-                $(this.selfcont).hide()
+                $(this.element).hide()
             }
+            return this
         }
+        this.style = deepBindFunctions(styleoperations, this)
+        this.universal = deepBindFunctions(universaloperations, this)
     } else {
         return new UDPopOver(el, binding);
     }
@@ -141,11 +278,24 @@ function UDHorStack(el) {
     if(this instanceof UDHorStack) {
         this.el = el
         this.oldrc = rendercontext
-        this.selfcont = document.createElement("hstack")
-        rendercontext = this.selfcont
-        this.oldrc.append(this.selfcont)
+        this.element = document.createElement("hstack")
+        rendercontext = this.element
+        this.oldrc.append(this.element)
         this.el()
         rendercontext = this.oldrc
+        this.gap = function(gap) {
+            if (typeof gap === "number") {
+                this.element.style.gap = gap + "px"
+                return this
+            } else if (typeof gap === "string") {
+                this.element.style.gap = gap
+                return this
+            } else if (gap == undefined) {
+                return this.element.style.gap
+            }
+        }
+        this.style = deepBindFunctions(styleoperations, this)
+        this.universal = deepBindFunctions(universaloperations, this)
     } else {
         return new UDHorStack(el);
     }
@@ -276,16 +426,18 @@ function UDSplitView(s1, s2) {
             return this
         }
         this.oldrc = rendercontext
-        this.selfcont = document.createElement("splitview")
-        this.oldrc.append(this.selfcont)
+        this.element = document.createElement("splitview")
+        this.element.classList.add("navigateable-element")
+        this.oldrc.append(this.element)
         rendercontext = document.createElement("splitviews1")
         this.side1el = rendercontext
-        this.selfcont.append(rendercontext)
+        this.element.append(rendercontext)
         this.side1()
         rendercontext = document.createElement("splitviews2")
         this.side2el = rendercontext
-        navigatepos = rendercontext
-        this.selfcont.append(rendercontext)
+        rendercontext.classList.add("navigatepos")
+        // navigatepos = rendercontext
+        this.element.append(rendercontext)
         this.side2()
         rendercontext = this.oldrc
     } else {
@@ -317,8 +469,23 @@ function UDTextNode(text) {
                 $(this.element).removeClass("textnodenomargin")
             }
         }
+        this.style = deepBindFunctions(styleoperations, this)
+        this.universal = deepBindFunctions(universaloperations, this)
     } else {
         return new UDTextNode(text);
+    }
+}
+
+function UDCustomHTML(content) {
+    if(this instanceof UDCustomHTML) {
+        this.content = content
+        this.element = document.createElement("div")
+        this.element.innerHTML = this.content
+        rendercontext.append(this.element)
+        this.style = deepBindFunctions(styleoperations, this)
+        this.universal = deepBindFunctions(universaloperations, this)
+    } else {
+        return new UDCustomHTML(content);
     }
 }
 
@@ -328,6 +495,8 @@ function UDMarkdownBlock(md) {
         this.element = document.createElement("md-block")
         this.element.innerHTML = this.textcontent
         rendercontext.append(this.element)
+        this.style = deepBindFunctions(styleoperations, this)
+        this.universal = deepBindFunctions(universaloperations, this)
     } else {
         return new UDMarkdownBlock(md);
     }
@@ -337,12 +506,12 @@ function UDListSection(items) {
     if(this instanceof UDListSection) {
         this.items = items
         this.oldrc = rendercontext
-        this.selfcont = document.createElement("listsection")
-        rendercontext = this.selfcont
-        this.oldrc.append(this.selfcont)
-        this.selfcontinner = document.createElement("listsectioninner")
-        rendercontext = this.selfcontinner
-        this.selfcont.append(this.selfcontinner)
+        this.element = document.createElement("listsection")
+        rendercontext = this.element
+        this.oldrc.append(this.element)
+        this.elementinner = document.createElement("listsectioninner")
+        rendercontext = this.elementinner
+        this.element.append(this.elementinner)
         this.items()
         rendercontext = this.oldrc
         this.title = function(text) {
@@ -352,9 +521,11 @@ function UDListSection(items) {
             this.titleel = document.createElement("p")
             this.titleel.setAttribute("textstyle", "listsection")
             this.titleel.innerHTML = this.textcontent
-            this.selfcont.prepend(this.titleel)
+            this.element.prepend(this.titleel)
             return this
         }
+        this.style = deepBindFunctions(styleoperations, this)
+        this.universal = deepBindFunctions(universaloperations, this)
     } else {
         return new UDListSection(items);
     }
@@ -399,11 +570,7 @@ function UDNavItem(text, icon) {
             this.element.setAttribute("style", "color: " + color + ";")
             return this
         }
-        this.onclick = function(fn) {
-            console.log("onclick is now set")
-            this.element.addEventListener("click", fn)
-            return this
-        }
+        this.onclick = universaloperations.elementclick
         this.navStyle = function(style) {
             console.log("style is now " + style)
             $(this.textelement).removeClass("udnavitemextextver")
@@ -417,6 +584,8 @@ function UDNavItem(text, icon) {
             }
             return this
         }
+        this.style = deepBindFunctions(styleoperations, this)
+        this.universal = deepBindFunctions(universaloperations, this)
     } else {
         return new UDNavItem(text, icon);
     }
@@ -433,8 +602,12 @@ function UDButton(text, icon) {
         this.iconelement.style.width = 24
         this.textelement = document.createElement("udbuttontext")
         this.textelement.innerHTML = text
-        this.element.append(this.iconelement)
-        this.element.append(this.textelement)
+        if (icon != undefined) {
+            this.element.append(this.iconelement)
+        }
+        if (text != undefined) {
+            this.element.append(this.textelement)
+        }
         rendercontext.append(this.element)
         lucide.createIcons()
         this.color = function(color) {
@@ -442,11 +615,9 @@ function UDButton(text, icon) {
             this.element.setAttribute("style", "background-color: " + color + ";")
             return this
         }
-        this.onclick = function(fn) {
-            console.log("onclick is now set")
-            this.element.addEventListener("click", fn)
-            return this
-        }
+        this.onclick = universaloperations.elementclick
+        this.style = deepBindFunctions(styleoperations, this)
+        this.universal = deepBindFunctions(universaloperations, this)
     } else {
         return new UDButton(text, icon);
     }
@@ -471,6 +642,8 @@ function UDTextBox(placeholder) {
                 }, 10);
             })
         }
+        this.style = deepBindFunctions(styleoperations, this)
+        this.universal = deepBindFunctions(universaloperations, this)
     } else {
         return new UDTextBox(placeholder);
     }
@@ -493,6 +666,8 @@ function UDIconNode(icon) {
             lucide.createIcons()
             return this
         }
+        this.style = deepBindFunctions(styleoperations, this)
+        this.universal = deepBindFunctions(universaloperations, this)
     } else {
         return new UDIconNode(icon);
     }
